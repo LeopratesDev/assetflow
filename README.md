@@ -271,6 +271,7 @@ Após rodar `python -m app.core.seed`:
 - [x] Etapa 8 — README completo
 - [x] Etapa 9 — Deploy
 - [x] Etapa 10 — Redesign: AssetFlow
+- [x] Etapa 11 — Polish: title, favicon, mobile responsivo (drawer + cards)
 
 ## Autor
 
