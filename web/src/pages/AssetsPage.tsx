@@ -2,6 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import toast from "react-hot-toast";
 import { Plus, Search, Download, Monitor, Pencil } from "lucide-react";
 import {
   useAssets,
@@ -75,6 +76,7 @@ function exportCsv(items: Asset[]) {
   a.download = `ativos-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+  toast.success(`${items.length} ativos exportados para CSV`);
 }
 
 export function AssetsPage() {

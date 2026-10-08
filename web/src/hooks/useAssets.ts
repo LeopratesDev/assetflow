@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { api } from "../lib/api";
 import type { Asset, AssetStatus, PaginatedResponse } from "../types";
 
@@ -42,7 +43,11 @@ export function useCreateAsset() {
       status?: AssetStatus;
       notes?: string;
     }) => api.post<Asset>("/api/v1/assets", payload).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
+    onSuccess: (asset) => {
+      qc.invalidateQueries({ queryKey: ["assets"] });
+      toast.success(`Ativo "${asset.name}" cadastrado com sucesso`);
+    },
+    onError: () => toast.error("Erro ao cadastrar ativo. Verifique se o serial já existe."),
   });
 }
 
@@ -62,7 +67,11 @@ export function useUpdateAsset() {
       category_id: string;
     }> & { id: string }) =>
       api.patch<Asset>(`/api/v1/assets/${id}`, payload).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
+    onSuccess: (asset) => {
+      qc.invalidateQueries({ queryKey: ["assets"] });
+      toast.success(`Ativo "${asset.name}" atualizado`);
+    },
+    onError: () => toast.error("Erro ao salvar. Tente novamente."),
   });
 }
 
@@ -70,6 +79,10 @@ export function useDeleteAsset() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.delete(`/api/v1/assets/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["assets"] });
+      toast.success("Ativo excluído");
+    },
+    onError: () => toast.error("Erro ao excluir ativo."),
   });
 }

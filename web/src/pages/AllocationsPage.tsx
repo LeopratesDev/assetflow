@@ -9,6 +9,7 @@ import {
   useReturnAllocation,
 } from "../hooks/useAllocations";
 import { useAssets } from "../hooks/useAssets";
+import { useUsers } from "../hooks/useUsers";
 import { getCurrentRole } from "../lib/auth";
 import { AllocationBadge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
@@ -37,6 +38,7 @@ export function AllocationsPage() {
 
   const { data, isLoading } = useAllocations({ page, active: activeFilter });
   const { data: availableAssets } = useAssets({ status: "available", pageSize: 100 });
+  const { data: users } = useUsers();
   const create = useCreateAllocation();
   const returnAlloc = useReturnAllocation();
 
@@ -186,15 +188,18 @@ export function AllocationsPage() {
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">ID do usuário *</label>
-              <input
+              <label className="block text-xs font-medium text-gray-600 mb-1">Colaborador *</label>
+              <select
                 {...register("user_id")}
-                placeholder="UUID do usuário (ex: usr-0001-…)"
                 className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Obtenha o UUID do usuário no banco de dados ou na API.
-              </p>
+              >
+                <option value="">Selecione o colaborador…</option>
+                {users?.items.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} — {u.email}
+                  </option>
+                ))}
+              </select>
               {errors.user_id && (
                 <p className="text-xs text-red-500 mt-1">{errors.user_id.message}</p>
               )}

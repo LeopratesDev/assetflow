@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { api } from "../lib/api";
 import type { Allocation, PaginatedResponse } from "../types";
 
@@ -39,7 +40,9 @@ export function useCreateAllocation() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["allocations"] });
       qc.invalidateQueries({ queryKey: ["assets"] });
+      toast.success("Alocação criada com sucesso");
     },
+    onError: () => toast.error("Erro ao alocar. Verifique se o ativo ainda está disponível."),
   });
 }
 
@@ -59,7 +62,9 @@ export function useReturnAllocation() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["allocations"] });
       qc.invalidateQueries({ queryKey: ["assets"] });
+      toast.success("Devolução registrada");
     },
+    onError: () => toast.error("Erro ao registrar devolução."),
   });
 }
 

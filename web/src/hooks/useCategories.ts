@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { api } from "../lib/api";
 import type { Category, PaginatedResponse } from "../types";
 
@@ -24,7 +25,11 @@ export function useCreateCategory() {
   return useMutation({
     mutationFn: (payload: { name: string; description?: string }) =>
       api.post<Category>("/api/v1/categories", payload).then((r) => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+    onSuccess: (cat) => {
+      qc.invalidateQueries({ queryKey: ["categories"] });
+      toast.success(`Categoria "${cat.name}" criada`);
+    },
+    onError: () => toast.error("Erro ao criar categoria. Nome pode já existir."),
   });
 }
 
@@ -32,6 +37,10 @@ export function useDeleteCategory() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.delete(`/api/v1/categories/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("Categoria excluída");
+    },
+    onError: () => toast.error("Erro ao excluir categoria. Pode ter ativos vinculados."),
   });
 }

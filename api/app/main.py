@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.logging import configure_logging
-from app.routers import allocations, assets, auth, categories
+from app.routers import allocations, assets, auth, categories, users
 
 configure_logging(settings.environment)
 logger = structlog.get_logger()
@@ -74,6 +74,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(categories.router, prefix="/api/v1")
 app.include_router(assets.router, prefix="/api/v1")
 app.include_router(allocations.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["health"], summary="Health check")
