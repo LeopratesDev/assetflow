@@ -272,6 +272,7 @@ Após rodar `python -m app.core.seed`:
 - [x] Etapa 9 — Deploy
 - [x] Etapa 10 — Redesign: AssetFlow
 - [x] Etapa 11 — Polish: title, favicon, mobile responsivo (drawer + cards)
+- [x] Etapa 12 — UX: toasts de feedback, select de colaboradores, página 404, endpoint /users
 
 ## Autor
 
