@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "buildCommand": "cd web && npm run build",
+  "outputDirectory": "web/dist",
   "framework": "vite",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "https://it-asset-manager-api.onrender.com/api/$1" },
