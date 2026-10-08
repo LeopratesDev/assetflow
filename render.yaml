@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: it-asset-manager-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # definida manualmente no painel do Render
+      - key: SECRET_KEY
+        generateValue: true  # Render gera automaticamente
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: CORS_ORIGINS
+        sync: false          # ex: ["https://it-asset-manager.vercel.app"]
+      - key: ENVIRONMENT
+        value: production

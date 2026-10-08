@@ -1,0 +1,37 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "../lib/api";
+import type { Category, PaginatedResponse } from "../types";
+
+const KEYS = {
+  list: (page: number, size: number) => ["categories", page, size] as const,
+  detail: (id: string) => ["categories", id] as const,
+};
+
+export function useCategories(page = 1, pageSize = 10) {
+  return useQuery({
+    queryKey: KEYS.list(page, pageSize),
+    queryFn: async () => {
+      const { data } = await api.get<PaginatedResponse<Category>>(
+        `/api/v1/categories?page=${page}&page_size=${pageSize}`
+      );
+      return data;
+    },
+  });
+}
+
+export function useCreateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { name: string; description?: string }) =>
+      api.post<Category>("/api/v1/categories", payload).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+}
+
+export function useDeleteCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/v1/categories/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+  });
+}
