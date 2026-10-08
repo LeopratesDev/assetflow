@@ -91,7 +91,7 @@ export function AssetsPage() {
     search: search || undefined,
     status: status || undefined,
   });
-  const { data: allAssets } = useAssets({ pageSize: 200 });
+  const { data: allAssets } = useAssets({ pageSize: 100 });
   const { data: cats } = useCategories(1, 100);
   const create = useCreateAsset();
   const update = useUpdateAsset();

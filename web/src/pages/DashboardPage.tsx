@@ -165,7 +165,7 @@ function RecentAllocations() {
 }
 
 function PatrimonioCard() {
-  const { data } = useAssets({ pageSize: 200 });
+  const { data } = useAssets({ pageSize: 100 });
 
   const { total, count } = (data?.items ?? []).reduce(
     (acc, a) => ({
