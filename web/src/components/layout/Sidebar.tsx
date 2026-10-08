@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   LogOut,
   Zap,
+  X,
 } from "lucide-react";
 
 const navItems = [
@@ -17,25 +18,40 @@ const navItems = [
   { to: "/allocations", label: "Alocações", icon: ArrowLeftRight },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  open?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const role = getCurrentRole();
   const logout = useLogout();
 
-  return (
-    <aside className="w-60 min-h-screen bg-slate-950 text-white flex flex-col flex-shrink-0">
+  const content = (
+    <aside className="w-60 h-full bg-slate-950 text-white flex flex-col">
       <div className="px-5 py-5 border-b border-slate-800">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Zap className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-base tracking-tight">AssetFlow</span>
+              {role && (
+                <span className="text-[10px] bg-slate-800 text-slate-400 rounded-full px-2 py-0.5 uppercase font-medium tracking-wide border border-slate-700">
+                  {role}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-base tracking-tight">AssetFlow</span>
-            {role && (
-              <span className="text-[10px] bg-slate-800 text-slate-400 rounded-full px-2 py-0.5 uppercase font-medium tracking-wide border border-slate-700">
-                {role}
-              </span>
-            )}
-          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -45,6 +61,7 @@ export function Sidebar() {
             key={to}
             to={to}
             end={to === "/"}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-150 ${
                 isActive
@@ -69,5 +86,27 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop: sempre visível */}
+      <div className="hidden lg:flex flex-shrink-0 w-60 min-h-screen">
+        {content}
+      </div>
+
+      {/* Mobile: drawer com overlay */}
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-40 flex">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          <div className="relative z-50 flex flex-col w-60 h-full shadow-xl">
+            {content}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

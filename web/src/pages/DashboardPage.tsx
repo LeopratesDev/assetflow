@@ -27,14 +27,14 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, textColor, iconBg }: StatCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide leading-tight break-words">{label}</p>
           <p className={`text-2xl font-bold mt-1.5 ${textColor}`}>{value}</p>
         </div>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
-          <Icon className="w-5 h-5" />
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+          <Icon className="w-4.5 h-4.5" />
         </div>
       </div>
     </div>
@@ -72,7 +72,7 @@ export function DashboardPage() {
       iconBg: "bg-indigo-50 text-indigo-600",
     },
     {
-      label: "Em Manutenção",
+      label: "Manutenção",
       value: maintenance.data?.total_items ?? "—",
       icon: AlertTriangle,
       textColor: "text-amber-600",
