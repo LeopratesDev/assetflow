@@ -1,20 +1,42 @@
+import {
+  Monitor,
+  Tag,
+  ArrowLeftRight,
+  Package,
+  CheckCircle2,
+  AlertTriangle,
+  DollarSign,
+} from "lucide-react";
 import { useAssets } from "../hooks/useAssets";
 import { useAllocations } from "../hooks/useAllocations";
 import { useCategories } from "../hooks/useCategories";
+import type { ElementType } from "react";
 
-function StatCard({
-  label,
-  value,
-  color,
-}: {
+const fmt = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
+interface StatCardProps {
   label: string;
   value: number | string;
-  color: string;
-}) {
+  icon: ElementType;
+  textColor: string;
+  iconBg: string;
+}
+
+function StatCard({ label, value, icon: Icon, textColor, iconBg }: StatCardProps) {
   return (
-    <div className={`rounded-xl p-5 text-white ${color}`}>
-      <p className="text-sm opacity-80">{label}</p>
-      <p className="text-3xl font-bold mt-1">{value}</p>
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
+          <p className={`text-2xl font-bold mt-1.5 ${textColor}`}>{value}</p>
+        </div>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -27,76 +49,147 @@ export function DashboardPage() {
   const categories = useCategories(1, 1);
   const activeAllocs = useAllocations({ pageSize: 1, active: true });
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+  const stats: StatCardProps[] = [
+    {
+      label: "Total de Ativos",
+      value: assets.data?.total_items ?? "—",
+      icon: Package,
+      textColor: "text-gray-900",
+      iconBg: "bg-gray-100 text-gray-600",
+    },
+    {
+      label: "Disponíveis",
+      value: available.data?.total_items ?? "—",
+      icon: CheckCircle2,
+      textColor: "text-emerald-600",
+      iconBg: "bg-emerald-50 text-emerald-600",
+    },
+    {
+      label: "Alocados",
+      value: allocated.data?.total_items ?? "—",
+      icon: Monitor,
+      textColor: "text-indigo-600",
+      iconBg: "bg-indigo-50 text-indigo-600",
+    },
+    {
+      label: "Em Manutenção",
+      value: maintenance.data?.total_items ?? "—",
+      icon: AlertTriangle,
+      textColor: "text-amber-600",
+      iconBg: "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Categorias",
+      value: categories.data?.total_items ?? "—",
+      icon: Tag,
+      textColor: "text-violet-600",
+      iconBg: "bg-violet-50 text-violet-600",
+    },
+    {
+      label: "Alocações Ativas",
+      value: activeAllocs.data?.total_items ?? "—",
+      icon: ArrowLeftRight,
+      textColor: "text-rose-600",
+      iconBg: "bg-rose-50 text-rose-600",
+    },
+  ];
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <StatCard
-          label="Total de Ativos"
-          value={assets.data?.total_items ?? "—"}
-          color="bg-slate-700"
-        />
-        <StatCard
-          label="Disponíveis"
-          value={available.data?.total_items ?? "—"}
-          color="bg-emerald-600"
-        />
-        <StatCard
-          label="Alocados"
-          value={allocated.data?.total_items ?? "—"}
-          color="bg-blue-600"
-        />
-        <StatCard
-          label="Manutenção"
-          value={maintenance.data?.total_items ?? "—"}
-          color="bg-amber-500"
-        />
-        <StatCard
-          label="Categorias"
-          value={categories.data?.total_items ?? "—"}
-          color="bg-violet-600"
-        />
-        <StatCard
-          label="Alocações Ativas"
-          value={activeAllocs.data?.total_items ?? "—"}
-          color="bg-rose-600"
-        />
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        {stats.map((s) => (
+          <StatCard key={s.label} {...s} />
+        ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h2 className="font-semibold text-gray-800 mb-3">Alocações recentes</h2>
-        <RecentAllocations />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900 text-sm">Alocações Ativas</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Equipamentos alocados atualmente</p>
+          </div>
+          <RecentAllocations />
+        </div>
+
+        <PatrimonioCard />
       </div>
     </div>
   );
 }
 
 function RecentAllocations() {
-  const { data, isLoading } = useAllocations({ pageSize: 5, active: true });
+  const { data, isLoading } = useAllocations({ pageSize: 10, active: true });
 
-  if (isLoading) return <p className="text-sm text-gray-400">Carregando…</p>;
-  if (!data?.items.length)
-    return <p className="text-sm text-gray-400">Nenhuma alocação ativa.</p>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!data?.items.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+        <ArrowLeftRight className="w-10 h-10 text-gray-200 mb-3" />
+        <p className="text-sm text-gray-400">Nenhuma alocação ativa no momento.</p>
+      </div>
+    );
+  }
 
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-left text-gray-500 border-b border-gray-100">
-          <th className="pb-2 font-medium">Ativo</th>
-          <th className="pb-2 font-medium">Usuário</th>
-          <th className="pb-2 font-medium">Desde</th>
+        <tr className="text-left text-gray-400 text-xs bg-gray-50 border-b border-gray-100">
+          <th className="px-5 py-3 font-medium">Ativo</th>
+          <th className="px-5 py-3 font-medium">Responsável</th>
+          <th className="px-5 py-3 font-medium">Desde</th>
         </tr>
       </thead>
       <tbody>
         {data.items.map((a) => (
-          <tr key={a.id} className="border-b border-gray-50 last:border-0">
-            <td className="py-2 font-mono text-xs">{a.asset.serial_number}</td>
-            <td className="py-2">{a.user.name}</td>
-            <td className="py-2 text-gray-500">{a.allocated_at}</td>
+          <tr key={a.id} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
+            <td className="px-5 py-3">
+              <span className="font-mono text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md">
+                {a.asset.serial_number}
+              </span>
+              <p className="text-xs text-gray-400 mt-0.5">{a.asset.name}</p>
+            </td>
+            <td className="px-5 py-3 text-gray-700 font-medium">{a.user.name}</td>
+            <td className="px-5 py-3 text-gray-400 text-xs tabular-nums">{a.allocated_at}</td>
           </tr>
         ))}
       </tbody>
     </table>
+  );
+}
+
+function PatrimonioCard() {
+  const { data } = useAssets({ pageSize: 200 });
+
+  const { total, count } = (data?.items ?? []).reduce(
+    (acc, a) => ({
+      total: acc.total + (a.purchase_value ? parseFloat(a.purchase_value) : 0),
+      count: acc.count + 1,
+    }),
+    { total: 0, count: 0 }
+  );
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h2 className="font-semibold text-gray-900 text-sm">Patrimônio</h2>
+        <p className="text-xs text-gray-400 mt-0.5">Valor total do inventário</p>
+      </div>
+      <div className="px-5 py-8 flex flex-col items-center justify-center text-center gap-3">
+        <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center">
+          <DollarSign className="w-6 h-6 text-indigo-600" />
+        </div>
+        <div>
+          <p className="text-3xl font-bold text-gray-900">{fmt.format(total)}</p>
+          <p className="text-sm text-gray-400 mt-1">{count} ativos inventariados</p>
+        </div>
+      </div>
+    </div>
   );
 }

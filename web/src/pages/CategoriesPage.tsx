@@ -2,7 +2,12 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useCategories, useCreateCategory, useDeleteCategory } from "../hooks/useCategories";
+import { Plus, Tag, Trash2 } from "lucide-react";
+import {
+  useCategories,
+  useCreateCategory,
+  useDeleteCategory,
+} from "../hooks/useCategories";
 import { getCurrentRole } from "../lib/auth";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
@@ -12,6 +17,14 @@ const schema = z.object({
   description: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
+
+const catColors = [
+  "bg-indigo-50 text-indigo-600 border-indigo-100",
+  "bg-emerald-50 text-emerald-600 border-emerald-100",
+  "bg-amber-50 text-amber-600 border-amber-100",
+  "bg-rose-50 text-rose-600 border-rose-100",
+  "bg-violet-50 text-violet-600 border-violet-100",
+];
 
 export function CategoriesPage() {
   const [page, setPage] = useState(1);
@@ -23,12 +36,8 @@ export function CategoriesPage() {
   const create = useCreateCategory();
   const del = useDeleteCategory();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const { register, handleSubmit, reset, formState: { errors } } =
+    useForm<FormData>({ resolver: zodResolver(schema) });
 
   function onSubmit(d: FormData) {
     create.mutate(d, {
@@ -40,117 +49,107 @@ export function CategoriesPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Categorias</h1>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         {isAdmin && (
           <button
             onClick={() => setShowModal(true)}
-            className="rounded-lg bg-slate-800 text-white px-4 py-2 text-sm hover:bg-slate-700"
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors"
           >
-            + Nova categoria
+            <Plus className="w-4 h-4" />
+            Nova categoria
           </button>
         )}
       </div>
 
       {isLoading ? (
-        <p className="text-gray-400">Carregando…</p>
+        <div className="flex items-center justify-center py-16">
+          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr className="text-left text-gray-500 text-xs uppercase">
-                <th className="px-4 py-3 font-medium">Nome</th>
-                <th className="px-4 py-3 font-medium">Descrição</th>
-                {isAdmin && <th className="px-4 py-3 font-medium">Ações</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items.map((c) => (
-                <tr
-                  key={c.id}
-                  className="border-t border-gray-100 hover:bg-gray-50"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {data?.items.map((c, i) => (
+            <div
+              key={c.id}
+              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-start justify-between">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center border ${catColors[i % catColors.length]}`}
                 >
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {c.name}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {c.description ?? "—"}
-                  </td>
-                  {isAdmin && (
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => {
-                          if (confirm(`Excluir "${c.name}"?`)) del.mutate(c.id);
-                        }}
-                        className="text-red-500 hover:text-red-700 text-xs"
-                      >
-                        Excluir
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-              {!data?.items.length && (
-                <tr>
-                  <td
-                    colSpan={isAdmin ? 3 : 2}
-                    className="px-4 py-8 text-center text-gray-400"
+                  <Tag className="w-5 h-5" />
+                </div>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      if (confirm(`Excluir a categoria "${c.name}"?`)) del.mutate(c.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                    title="Excluir"
                   >
-                    Nenhuma categoria cadastrada.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <h3 className="mt-3 font-semibold text-gray-900">{c.name}</h3>
+              <p className="text-sm text-gray-400 mt-0.5">
+                {c.description ?? "Sem descrição"}
+              </p>
+            </div>
+          ))}
+
+          {!data?.items.length && (
+            <div className="col-span-3 flex flex-col items-center justify-center py-16 text-center">
+              <Tag className="w-10 h-10 text-gray-200 mb-3" />
+              <p className="text-sm text-gray-400">Nenhuma categoria cadastrada.</p>
+            </div>
+          )}
         </div>
       )}
 
-      <Pagination
-        page={page}
-        totalPages={data?.total_pages ?? 1}
-        onPage={setPage}
-      />
+      <Pagination page={page} totalPages={data?.total_pages ?? 1} onPage={setPage} />
 
       {showModal && (
-        <Modal title="Nova categoria" onClose={() => setShowModal(false)}>
+        <Modal
+          title="Nova categoria"
+          subtitle="Tipos de equipamento para organizar o inventário"
+          onClose={() => { setShowModal(false); reset(); }}
+        >
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome *
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Nome *</label>
               <input
                 {...register("name")}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                placeholder="Ex: Notebook, Monitor…"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
               {errors.name && (
                 <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descrição
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Descrição</label>
               <textarea
                 {...register("description")}
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 resize-none"
+                placeholder="Descreva o tipo de equipamento…"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />
             </div>
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                onClick={() => { setShowModal(false); reset(); }}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={create.isPending}
-                className="rounded-lg bg-slate-800 text-white px-4 py-2 text-sm disabled:opacity-50 hover:bg-slate-700"
+                className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-indigo-700 transition-colors"
               >
-                {create.isPending ? "Salvando…" : "Salvar"}
+                {create.isPending ? "Salvando…" : "Criar"}
               </button>
             </div>
             {create.error && (

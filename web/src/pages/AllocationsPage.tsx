@@ -2,6 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Plus, ArrowLeftRight, RotateCcw } from "lucide-react";
 import {
   useAllocations,
   useCreateAllocation,
@@ -9,6 +10,7 @@ import {
 } from "../hooks/useAllocations";
 import { useAssets } from "../hooks/useAssets";
 import { getCurrentRole } from "../lib/auth";
+import { AllocationBadge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
 
@@ -19,6 +21,12 @@ const createSchema = z.object({
 });
 type CreateData = z.infer<typeof createSchema>;
 
+const filterBtns = [
+  { label: "Todas", value: null },
+  { label: "Ativas", value: true },
+  { label: "Encerradas", value: false },
+] as const;
+
 export function AllocationsPage() {
   const [page, setPage] = useState(1);
   const [activeFilter, setActiveFilter] = useState<boolean | null>(null);
@@ -27,23 +35,13 @@ export function AllocationsPage() {
   const role = getCurrentRole();
   const isAdmin = role === "admin";
 
-  const { data, isLoading } = useAllocations({
-    page,
-    active: activeFilter,
-  });
-  const { data: availableAssets } = useAssets({
-    status: "available",
-    pageSize: 100,
-  });
+  const { data, isLoading } = useAllocations({ page, active: activeFilter });
+  const { data: availableAssets } = useAssets({ status: "available", pageSize: 100 });
   const create = useCreateAllocation();
   const returnAlloc = useReturnAllocation();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CreateData>({ resolver: zodResolver(createSchema) });
+  const { register, handleSubmit, reset, formState: { errors } } =
+    useForm<CreateData>({ resolver: zodResolver(createSchema) });
 
   function onCreateSubmit(d: CreateData) {
     create.mutate(d, {
@@ -62,96 +60,83 @@ export function AllocationsPage() {
     );
   }
 
-  const filterBtns = [
-    { label: "Todas", value: null },
-    { label: "Ativas", value: true },
-    { label: "Encerradas", value: false },
-  ] as const;
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Alocações</h1>
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+          {filterBtns.map((b) => (
+            <button
+              key={String(b.value)}
+              onClick={() => { setActiveFilter(b.value); setPage(1); }}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                activeFilter === b.value
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              {b.label}
+            </button>
+          ))}
+        </div>
         {isAdmin && (
           <button
             onClick={() => setShowCreate(true)}
-            className="rounded-lg bg-slate-800 text-white px-4 py-2 text-sm hover:bg-slate-700"
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-indigo-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors"
           >
-            + Nova alocação
+            <Plus className="w-4 h-4" />
+            Nova alocação
           </button>
         )}
       </div>
 
-      <div className="flex gap-2 mb-4">
-        {filterBtns.map((b) => (
-          <button
-            key={String(b.value)}
-            onClick={() => {
-              setActiveFilter(b.value);
-              setPage(1);
-            }}
-            className={`rounded-lg px-3 py-1.5 text-sm border transition-colors ${
-              activeFilter === b.value
-                ? "bg-slate-800 text-white border-slate-800"
-                : "border-gray-300 text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
-
+      {/* Table */}
       {isLoading ? (
-        <p className="text-gray-400">Carregando…</p>
+        <div className="flex items-center justify-center py-16">
+          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr className="text-left text-gray-500 text-xs uppercase">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr className="text-left text-gray-400 text-xs uppercase tracking-wide">
                 <th className="px-4 py-3 font-medium">Ativo</th>
-                <th className="px-4 py-3 font-medium">Usuário</th>
+                <th className="px-4 py-3 font-medium">Responsável</th>
                 <th className="px-4 py-3 font-medium">Alocado em</th>
                 <th className="px-4 py-3 font-medium">Devolvido em</th>
                 <th className="px-4 py-3 font-medium">Status</th>
-                {isAdmin && <th className="px-4 py-3 font-medium">Ações</th>}
+                {isAdmin && <th className="px-4 py-3 font-medium w-10" />}
               </tr>
             </thead>
             <tbody>
               {data?.items.map((a) => (
-                <tr
-                  key={a.id}
-                  className="border-t border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="px-4 py-3 font-mono text-xs text-gray-700">
-                    {a.asset.serial_number}
+                <tr key={a.id} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <span className="font-mono text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md">
+                      {a.asset.serial_number}
+                    </span>
+                    <p className="text-xs text-gray-400 mt-0.5">{a.asset.name}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900">{a.user.name}</div>
-                    <div className="text-gray-400 text-xs">{a.user.email}</div>
+                    <p className="font-medium text-gray-900">{a.user.name}</p>
+                    <p className="text-xs text-gray-400">{a.user.email}</p>
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{a.allocated_at}</td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-gray-500 tabular-nums text-xs">{a.allocated_at}</td>
+                  <td className="px-4 py-3 text-gray-400 tabular-nums text-xs">
                     {a.returned_at ?? "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        a.is_active
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {a.is_active ? "Ativa" : "Encerrada"}
-                    </span>
+                    <AllocationBadge active={a.is_active} />
                   </td>
                   {isAdmin && (
                     <td className="px-4 py-3">
                       {a.is_active && (
                         <button
                           onClick={() => setReturningId(a.id)}
-                          className="text-blue-600 hover:text-blue-800 text-xs"
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          title="Registrar devolução"
                         >
-                          Devolver
+                          <RotateCcw className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </td>
@@ -160,11 +145,11 @@ export function AllocationsPage() {
               ))}
               {!data?.items.length && (
                 <tr>
-                  <td
-                    colSpan={isAdmin ? 6 : 5}
-                    className="px-4 py-8 text-center text-gray-400"
-                  >
-                    Nenhuma alocação encontrada.
+                  <td colSpan={isAdmin ? 6 : 5}>
+                    <div className="flex flex-col items-center justify-center py-14 text-center">
+                      <ArrowLeftRight className="w-10 h-10 text-gray-200 mb-3" />
+                      <p className="text-sm text-gray-400">Nenhuma alocação encontrada.</p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -173,25 +158,23 @@ export function AllocationsPage() {
         </div>
       )}
 
-      <Pagination
-        page={page}
-        totalPages={data?.total_pages ?? 1}
-        onPage={setPage}
-      />
+      <Pagination page={page} totalPages={data?.total_pages ?? 1} onPage={setPage} />
 
       {/* Modal: nova alocação */}
       {showCreate && (
-        <Modal title="Nova alocação" onClose={() => setShowCreate(false)}>
+        <Modal
+          title="Nova alocação"
+          subtitle="Vincule um ativo disponível a um colaborador"
+          onClose={() => { setShowCreate(false); reset(); }}
+        >
           <form onSubmit={handleSubmit(onCreateSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ativo disponível *
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Ativo disponível *</label>
               <select
                 {...register("asset_id")}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="">Selecione…</option>
+                <option value="">Selecione o ativo…</option>
                 {availableAssets?.items.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.serial_number} — {a.name}
@@ -199,48 +182,44 @@ export function AllocationsPage() {
                 ))}
               </select>
               {errors.asset_id && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.asset_id.message}
-                </p>
+                <p className="text-xs text-red-500 mt-1">{errors.asset_id.message}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ID do usuário *
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">ID do usuário *</label>
               <input
                 {...register("user_id")}
-                placeholder="UUID do usuário"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                placeholder="UUID do usuário (ex: usr-0001-…)"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
+              <p className="text-xs text-gray-400 mt-1">
+                Obtenha o UUID do usuário no banco de dados ou na API.
+              </p>
               {errors.user_id && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.user_id.message}
-                </p>
+                <p className="text-xs text-red-500 mt-1">{errors.user_id.message}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Observações
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Observações</label>
               <textarea
                 {...register("notes")}
                 rows={2}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 resize-none"
+                placeholder="Motivo, projeto, setor…"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />
             </div>
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 type="button"
-                onClick={() => setShowCreate(false)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                onClick={() => { setShowCreate(false); reset(); }}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={create.isPending}
-                className="rounded-lg bg-slate-800 text-white px-4 py-2 text-sm disabled:opacity-50 hover:bg-slate-700"
+                className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-indigo-700 transition-colors"
               >
                 {create.isPending ? "Alocando…" : "Alocar"}
               </button>
@@ -254,26 +233,34 @@ export function AllocationsPage() {
         </Modal>
       )}
 
-      {/* Modal: confirmação de devolução */}
+      {/* Modal: confirmar devolução */}
       {returningId && (
-        <Modal title="Confirmar devolução" onClose={() => setReturningId(null)}>
-          <p className="text-sm text-gray-600 mb-4">
-            Confirma a devolução do ativo hoje (
-            {new Date().toLocaleDateString("pt-BR")})?
+        <Modal
+          title="Confirmar devolução"
+          subtitle="Esta ação encerrará a alocação e liberará o ativo"
+          size="sm"
+          onClose={() => setReturningId(null)}
+        >
+          <p className="text-sm text-gray-600 mb-5">
+            Confirma a devolução do ativo em{" "}
+            <span className="font-semibold text-gray-900">
+              {new Date().toLocaleDateString("pt-BR")}
+            </span>
+            ?
           </p>
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setReturningId(null)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={() => handleReturn(returningId)}
               disabled={returnAlloc.isPending}
-              className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm disabled:opacity-50 hover:bg-blue-700"
+              className="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-indigo-700 transition-colors"
             >
-              {returnAlloc.isPending ? "Devolvendo…" : "Confirmar"}
+              {returnAlloc.isPending ? "Registrando…" : "Confirmar devolução"}
             </button>
           </div>
         </Modal>
