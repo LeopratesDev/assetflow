@@ -255,9 +255,9 @@ Após rodar `python -m app.core.seed`:
 
 | E-mail | Senha | Role |
 |--------|-------|------|
-| `admin@empresa.com` | `admin123` | admin |
-| `joao@empresa.com` | `joao123` | employee |
-| `maria@empresa.com` | `maria123` | employee |
+| `admin@itasset.dev` | `Admin@1234` | admin |
+| `ana.silva@itasset.dev` | `Employee@1234` | employee |
+| `bruno.costa@itasset.dev` | `Employee@1234` | employee |
 
 ## Etapas de desenvolvimento
 
