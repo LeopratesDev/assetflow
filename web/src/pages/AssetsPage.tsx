@@ -56,7 +56,7 @@ const fieldLabels: Record<string, string> = {
 };
 
 function exportCsv(items: Asset[]) {
-  const header = ["Serial", "Nome", "Marca", "Modelo", "Categoria", "Status", "Valor"].join(";");
+  const header = ["Serial", "Nome", "Marca", "Modelo", "Categoria", "Data de compra", "Valor", "Status"].join(";");
   const rows = items.map((a) =>
     [
       a.serial_number,
@@ -64,8 +64,9 @@ function exportCsv(items: Asset[]) {
       a.brand,
       a.model,
       a.category.name,
-      a.status,
+      a.purchase_date ?? "",
       a.purchase_value ?? "",
+      a.status,
     ].join(";")
   );
   const csv = [header, ...rows].join("\n");
@@ -192,6 +193,7 @@ export function AssetsPage() {
                 <th className="px-4 py-3 font-medium">Nome</th>
                 <th className="px-4 py-3 font-medium">Marca / Modelo</th>
                 <th className="px-4 py-3 font-medium">Categoria</th>
+                <th className="px-4 py-3 font-medium hidden lg:table-cell">Data de compra</th>
                 <th className="px-4 py-3 font-medium">Valor</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 {isAdmin && <th className="px-4 py-3 font-medium w-10" />}
@@ -211,6 +213,11 @@ export function AssetsPage() {
                   <td className="px-4 py-3 font-medium text-gray-900">{a.name}</td>
                   <td className="px-4 py-3 text-gray-500">{a.brand} · {a.model}</td>
                   <td className="px-4 py-3 text-gray-500">{a.category.name}</td>
+                  <td className="px-4 py-3 text-gray-400 tabular-nums text-xs hidden lg:table-cell">
+                    {a.purchase_date
+                      ? new Date(a.purchase_date + "T00:00:00").toLocaleDateString("pt-BR")
+                      : "—"}
+                  </td>
                   <td className="px-4 py-3 text-gray-500 tabular-nums text-xs">
                     {a.purchase_value ? fmt.format(parseFloat(a.purchase_value)) : "—"}
                   </td>
@@ -232,7 +239,7 @@ export function AssetsPage() {
               ))}
               {!data?.items.length && (
                 <tr>
-                  <td colSpan={isAdmin ? 7 : 6}>
+                  <td colSpan={isAdmin ? 8 : 7}>
                     <div className="flex flex-col items-center justify-center py-14 text-center">
                       <Monitor className="w-10 h-10 text-gray-200 mb-3" />
                       <p className="text-sm text-gray-400">Nenhum ativo encontrado.</p>

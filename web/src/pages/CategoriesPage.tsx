@@ -2,7 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Plus, Tag, Trash2 } from "lucide-react";
+import { Plus, Tag, Trash2, AlertTriangle } from "lucide-react";
 import {
   useCategories,
   useCreateCategory,
@@ -29,6 +29,7 @@ const catColors = [
 export function CategoriesPage() {
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [deletingCategory, setDeletingCategory] = useState<{ id: string; name: string } | null>(null);
   const role = getCurrentRole();
   const isAdmin = role === "admin";
 
@@ -81,9 +82,7 @@ export function CategoriesPage() {
                 </div>
                 {isAdmin && (
                   <button
-                    onClick={() => {
-                      if (confirm(`Excluir a categoria "${c.name}"?`)) del.mutate(c.id);
-                    }}
+                    onClick={() => setDeletingCategory({ id: c.id, name: c.name })}
                     className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
                     title="Excluir"
                   >
@@ -108,6 +107,43 @@ export function CategoriesPage() {
       )}
 
       <Pagination page={page} totalPages={data?.total_pages ?? 1} onPage={setPage} />
+
+      {deletingCategory && (
+        <Modal
+          title="Excluir categoria"
+          subtitle={deletingCategory.name}
+          size="sm"
+          onClose={() => setDeletingCategory(null)}
+        >
+          <div className="flex items-start gap-3 mb-5">
+            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+            </div>
+            <p className="text-sm text-gray-600 pt-1.5">
+              Tem certeza que deseja excluir a categoria{" "}
+              <span className="font-semibold text-gray-900">"{deletingCategory.name}"</span>?
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setDeletingCategory(null)}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                del.mutate(deletingCategory.id, { onSuccess: () => setDeletingCategory(null) });
+              }}
+              disabled={del.isPending}
+              className="rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-red-700 transition-colors"
+            >
+              {del.isPending ? "Excluindo…" : "Excluir"}
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {showModal && (
         <Modal

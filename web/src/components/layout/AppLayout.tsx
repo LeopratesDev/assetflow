@@ -53,7 +53,7 @@ export function AppLayout() {
             </span>
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main key={location.pathname} className="flex-1 p-4 lg:p-6 overflow-auto animate-fadein">
           <Outlet />
         </main>
       </div>
