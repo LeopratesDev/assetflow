@@ -1,6 +1,6 @@
-# IT Asset Manager
+# AssetFlow
 
-> Sistema de gestão de ativos de TI: cadastro de equipamentos, alocações para colaboradores e histórico completo de movimentações.
+> Plataforma de gestão de ativos de TI: controle de equipamentos, alocações para colaboradores e histórico completo de movimentações — tudo em um único painel.
 
 ![CI](https://github.com/LeopratesDev/it-asset-manager/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
@@ -15,7 +15,7 @@
 | API | Python 3.12 · FastAPI · SQLAlchemy 2 async · Alembic |
 | Banco | PostgreSQL 16 (prod) · SQLite in-memory (testes) |
 | Auth | JWT (python-jose) · bcrypt · OAuth2 Password Flow |
-| Frontend | React 19 · TypeScript · Vite · Tailwind CSS v4 |
+| Frontend | React 19 · TypeScript · Vite · Tailwind CSS v4 · Lucide React |
 | Queries | TanStack Query v5 · React Hook Form · Zod |
 | Testes | pytest · httpx · Vitest · Testing Library |
 | CI/CD | GitHub Actions |
@@ -270,6 +270,7 @@ Após rodar `python -m app.core.seed`:
 - [x] Etapa 7 — Docker Compose
 - [x] Etapa 8 — README completo
 - [x] Etapa 9 — Deploy
+- [x] Etapa 10 — Redesign: AssetFlow
 
 ## Autor
 
