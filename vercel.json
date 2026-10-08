@@ -3,7 +3,7 @@
   "outputDirectory": "web/dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://it-asset-manager-api.onrender.com/api/$1" },
+    { "source": "/api/(.*)", "destination": "https://it-asset-manager-il7e.onrender.com/api/$1" },
     { "source": "/(.*)",     "destination": "/index.html" }
   ],
   "env": {

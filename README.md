@@ -193,9 +193,9 @@ O projeto está configurado para deploy em três serviços gratuitos:
 
 | Serviço | Plataforma | URL |
 |---------|-----------|-----|
-| API | [Render](https://render.com) | `https://it-asset-manager-api.onrender.com` |
+| API | [Render](https://render.com) | `https://it-asset-manager-il7e.onrender.com` |
 | Banco | [Neon.tech](https://neon.tech) | PostgreSQL serverless |
-| Frontend | [Vercel](https://vercel.com) | `https://it-asset-manager.vercel.app` |
+| Frontend | [Vercel](https://vercel.com) | `https://it-asset-manager-psi.vercel.app` |
 
 ### Passo a passo
 
