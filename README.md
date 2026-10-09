@@ -6,9 +6,17 @@
 
 ## Screenshots
 
-| Login | Dashboard | Ativos |
-|-------|-----------|--------|
-| ![Login](.github/screenshots/login.jpg) | ![Dashboard](.github/screenshots/dashboard.jpg) | ![Ativos](.github/screenshots/assets.jpg) |
+| Login | Dashboard |
+|-------|-----------|
+| ![Login](.github/screenshots/login.jpg) | ![Dashboard](.github/screenshots/dashboard.jpg) |
+
+| Gráficos | Ativos |
+|----------|--------|
+| ![Gráficos](.github/screenshots/dashboard-charts.jpg) | ![Ativos](.github/screenshots/assets.jpg) |
+
+| Categorias | Histórico do ativo |
+|------------|-------------------|
+| ![Categorias](.github/screenshots/categories.jpg) | ![Histórico](.github/screenshots/history.jpg) |
 
 ![CI](https://github.com/LeopratesDev/assetflow/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
@@ -283,6 +291,7 @@ Após rodar `python -m app.core.seed`:
 - [x] Etapa 12 — UX: toasts de feedback, select de colaboradores, página 404, endpoint /users
 - [x] Etapa 13 — Polish: fade-in entre páginas, modal de confirmação de delete, coluna data de compra
 - [x] Etapa 14 — Gráficos: donut chart por categoria + barras por status (Recharts); repo renomeado para assetflow; screenshots no README
+- [x] Etapa 15 — UX: skeleton loading nas tabelas, busca de categorias, página de histórico do ativo, datas do seed atualizadas para 2025/2026
 
 ## Autor
 
