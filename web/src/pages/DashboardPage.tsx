@@ -7,6 +7,14 @@ import {
   AlertTriangle,
   DollarSign,
 } from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import { useAssets } from "../hooks/useAssets";
 import { useAllocations } from "../hooks/useAllocations";
 import { useCategories } from "../hooks/useCategories";
@@ -113,6 +121,11 @@ export function DashboardPage() {
 
         <PatrimonioCard />
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CategoryChart />
+        <StatusChart />
+      </div>
     </div>
   );
 }
@@ -161,6 +174,125 @@ function RecentAllocations() {
         ))}
       </tbody>
     </table>
+  );
+}
+
+const CHART_COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
+
+function CategoryChart() {
+  const { data } = useAssets({ pageSize: 100 });
+
+  const byCategory = Object.entries(
+    (data?.items ?? []).reduce<Record<string, number>>((acc, a) => {
+      const cat = a.category.name;
+      acc[cat] = (acc[cat] ?? 0) + 1;
+      return acc;
+    }, {})
+  ).map(([name, value]) => ({ name, value }));
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h2 className="font-semibold text-gray-900 text-sm">Ativos por categoria</h2>
+        <p className="text-xs text-gray-400 mt-0.5">Distribuição do inventário</p>
+      </div>
+      {byCategory.length === 0 ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="px-5 py-4">
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie
+                data={byCategory}
+                cx="50%"
+                cy="50%"
+                innerRadius={55}
+                outerRadius={85}
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {byCategory.map((_, i) => (
+                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(v: number) => [`${v} ativo${v !== 1 ? "s" : ""}`, ""]}
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}
+              />
+              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  available: "Disponível",
+  allocated: "Alocado",
+  maintenance: "Manutenção",
+  disposed: "Descartado",
+};
+const STATUS_COLORS: Record<string, string> = {
+  available: "#10b981",
+  allocated: "#4f46e5",
+  maintenance: "#f59e0b",
+  disposed: "#ef4444",
+};
+
+function StatusChart() {
+  const { data } = useAssets({ pageSize: 100 });
+
+  const byStatus = Object.entries(
+    (data?.items ?? []).reduce<Record<string, number>>((acc, a) => {
+      acc[a.status] = (acc[a.status] ?? 0) + 1;
+      return acc;
+    }, {})
+  ).map(([status, value]) => ({
+    name: STATUS_LABELS[status] ?? status,
+    value,
+    color: STATUS_COLORS[status] ?? "#6b7280",
+  }));
+
+  const total = byStatus.reduce((s, d) => s + d.value, 0);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <h2 className="font-semibold text-gray-900 text-sm">Ativos por status</h2>
+        <p className="text-xs text-gray-400 mt-0.5">Situação atual do inventário</p>
+      </div>
+      {byStatus.length === 0 ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="px-5 py-5 space-y-3">
+          {byStatus.map((d) => (
+            <div key={d.name}>
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-gray-600 font-medium">{d.name}</span>
+                <span className="text-gray-400 tabular-nums">
+                  {d.value} ({total > 0 ? Math.round((d.value / total) * 100) : 0}%)
+                </span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${total > 0 ? (d.value / total) * 100 : 0}%`,
+                    backgroundColor: d.color,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
