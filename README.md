@@ -2,7 +2,15 @@
 
 > Plataforma de gestão de ativos de TI: controle de equipamentos, alocações para colaboradores e histórico completo de movimentações — tudo em um único painel.
 
-![CI](https://github.com/LeopratesDev/it-asset-manager/actions/workflows/ci.yml/badge.svg)
+**[🔗 Demo ao vivo](https://it-asset-manager-psi.vercel.app)** — login: `admin@itasset.dev` / `Admin@1234`
+
+## Screenshots
+
+| Login | Dashboard | Ativos |
+|-------|-----------|--------|
+| ![Login](.github/screenshots/login.jpg) | ![Dashboard](.github/screenshots/dashboard.jpg) | ![Ativos](.github/screenshots/assets.jpg) |
+
+![CI](https://github.com/LeopratesDev/assetflow/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
@@ -274,6 +282,7 @@ Após rodar `python -m app.core.seed`:
 - [x] Etapa 11 — Polish: title, favicon, mobile responsivo (drawer + cards)
 - [x] Etapa 12 — UX: toasts de feedback, select de colaboradores, página 404, endpoint /users
 - [x] Etapa 13 — Polish: fade-in entre páginas, modal de confirmação de delete, coluna data de compra
+- [x] Etapa 14 — Gráficos: donut chart por categoria + barras por status (Recharts); repo renomeado para assetflow; screenshots no README
 
 ## Autor
 
