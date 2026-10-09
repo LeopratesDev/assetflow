@@ -292,6 +292,8 @@ Após rodar `python -m app.core.seed`:
 - [x] Etapa 13 — Polish: fade-in entre páginas, modal de confirmação de delete, coluna data de compra
 - [x] Etapa 14 — Gráficos: donut chart por categoria + barras por status (Recharts); repo renomeado para assetflow; screenshots no README
 - [x] Etapa 15 — UX: skeleton loading nas tabelas, busca de categorias, página de histórico do ativo, datas do seed atualizadas para 2025/2026
+- [x] Etapa 16 — Categorias: contador de ativos, barra de status proporcional, cards clicáveis com filtro, edição inline, ordenação e animação stagger
+- [x] Etapa 17 — Exportação: dropdown com 3 formatos (Excel .xlsx, PDF .pdf, Word .docx)
 
 ## Autor
 
