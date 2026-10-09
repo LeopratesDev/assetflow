@@ -218,7 +218,7 @@ function CategoryChart() {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(v: number) => [`${v} ativo${v !== 1 ? "s" : ""}`, ""]}
+                formatter={(v) => [`${v} ativo${v !== 1 ? "s" : ""}`, ""]}
                 contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}
               />
               <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
