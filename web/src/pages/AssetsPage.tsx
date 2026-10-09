@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { Plus, Search, Download, Monitor, Pencil, History, X } from "lucide-react";
+import { Plus, Search, Download, Monitor, Pencil, History, X, ChevronDown, FileSpreadsheet, FileText } from "lucide-react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, HeadingLevel, AlignmentType } from "docx";
 import {
   useAssets,
   useCreateAsset,
@@ -57,29 +61,102 @@ const fieldLabels: Record<string, string> = {
   model: "Modelo",
 };
 
-function exportCsv(items: Asset[]) {
-  const header = ["Serial", "Nome", "Marca", "Modelo", "Categoria", "Data de compra", "Valor", "Status"].join(";");
-  const rows = items.map((a) =>
-    [
-      a.serial_number,
-      a.name,
-      a.brand,
-      a.model,
-      a.category.name,
-      a.purchase_date ?? "",
-      a.purchase_value ?? "",
-      a.status,
-    ].join(";")
+const EXPORT_HEADERS = ["Serial", "Nome", "Marca", "Modelo", "Categoria", "Data de compra", "Valor", "Status"];
+
+function getRows(items: Asset[]) {
+  return items.map((a) => [
+    a.serial_number,
+    a.name,
+    a.brand,
+    a.model,
+    a.category.name,
+    a.purchase_date ?? "",
+    a.purchase_value ? `R$ ${parseFloat(a.purchase_value).toFixed(2).replace(".", ",")}` : "",
+    a.status,
+  ]);
+}
+
+function exportExcel(items: Asset[]) {
+  const ws = XLSX.utils.aoa_to_sheet([EXPORT_HEADERS, ...getRows(items)]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Ativos");
+  XLSX.writeFile(wb, `ativos-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  toast.success(`${items.length} ativos exportados para Excel`);
+}
+
+function exportPdf(items: Asset[]) {
+  const doc = new jsPDF({ orientation: "landscape" });
+  doc.setFontSize(14);
+  doc.text("Relatório de Ativos", 14, 15);
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, 14, 21);
+  autoTable(doc, {
+    head: [EXPORT_HEADERS],
+    body: getRows(items),
+    startY: 26,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [79, 70, 229] },
+  });
+  doc.save(`ativos-${new Date().toISOString().slice(0, 10)}.pdf`);
+  toast.success(`${items.length} ativos exportados para PDF`);
+}
+
+async function exportWord(items: Asset[]) {
+  const headerCells = EXPORT_HEADERS.map(
+    (h) =>
+      new TableCell({
+        children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 18 })] })],
+        width: { size: Math.floor(9000 / EXPORT_HEADERS.length), type: WidthType.DXA },
+      })
   );
-  const csv = [header, ...rows].join("\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const dataRows = getRows(items).map(
+    (row) =>
+      new TableRow({
+        children: row.map(
+          (cell) =>
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: String(cell), size: 16 })] })],
+              width: { size: Math.floor(9000 / EXPORT_HEADERS.length), type: WidthType.DXA },
+            })
+        ),
+      })
+  );
+  const doc = new Document({
+    sections: [
+      {
+        children: [
+          new Paragraph({
+            text: "Relatório de Ativos",
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.LEFT,
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
+                size: 18,
+                color: "777777",
+              }),
+            ],
+          }),
+          new Paragraph({ text: "" }),
+          new Table({
+            rows: [new TableRow({ children: headerCells }), ...dataRows],
+            width: { size: 9000, type: WidthType.DXA },
+          }),
+        ],
+      },
+    ],
+  });
+  const blob = await Packer.toBlob(doc);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `ativos-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `ativos-${new Date().toISOString().slice(0, 10)}.docx`;
   a.click();
   URL.revokeObjectURL(url);
-  toast.success(`${items.length} ativos exportados para CSV`);
+  toast.success(`${items.length} ativos exportados para Word`);
 }
 
 export function AssetsPage() {
@@ -88,6 +165,18 @@ export function AssetsPage() {
   const [status, setStatus] = useState<AssetStatus | "">("");
   const [showCreate, setShowCreate] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryFilter = searchParams.get("category_id") ?? undefined;
@@ -184,14 +273,41 @@ export function AssetsPage() {
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        <button
-          onClick={() => allAssets?.items && exportCsv(allAssets.items)}
-          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-600 shadow-sm hover:bg-gray-50 transition-colors"
-          title="Exportar CSV"
-        >
-          <Download className="w-4 h-4" />
-          Exportar
-        </button>
+        <div ref={exportRef} className="relative">
+          <button
+            onClick={() => setShowExportMenu((v) => !v)}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-600 shadow-sm hover:bg-gray-50 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Exportar
+            <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+          </button>
+          {showExportMenu && (
+            <div className="absolute right-0 mt-1 w-44 rounded-lg border border-gray-200 bg-white shadow-lg z-10 py-1">
+              <button
+                onClick={() => { allAssets?.items && exportExcel(allAssets.items); setShowExportMenu(false); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                Excel (.xlsx)
+              </button>
+              <button
+                onClick={() => { allAssets?.items && exportPdf(allAssets.items); setShowExportMenu(false); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="w-4 h-4 text-red-500" />
+                PDF (.pdf)
+              </button>
+              <button
+                onClick={() => { allAssets?.items && exportWord(allAssets.items); setShowExportMenu(false); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="w-4 h-4 text-blue-600" />
+                Word (.docx)
+              </button>
+            </div>
+          )}
+        </div>
         {isAdmin && (
           <button
             onClick={() => setShowCreate(true)}
