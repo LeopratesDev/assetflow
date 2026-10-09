@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { Plus, Search, Download, Monitor, Pencil, History } from "lucide-react";
+import { Plus, Search, Download, Monitor, Pencil, History, X } from "lucide-react";
 import {
   useAssets,
   useCreateAsset,
@@ -11,7 +11,7 @@ import {
   useUpdateAsset,
 } from "../hooks/useAssets";
 import { useCategories } from "../hooks/useCategories";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCurrentRole } from "../lib/auth";
 import { StatusBadge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
@@ -89,6 +89,8 @@ export function AssetsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryFilter = searchParams.get("category_id") ?? undefined;
   const role = getCurrentRole();
   const isAdmin = role === "admin";
 
@@ -96,9 +98,13 @@ export function AssetsPage() {
     page,
     search: search || undefined,
     status: status || undefined,
+    category_id: categoryFilter,
   });
-  const { data: allAssets } = useAssets({ pageSize: 100 });
+  const { data: allAssets } = useAssets({ pageSize: 100, category_id: categoryFilter });
   const { data: cats } = useCategories(1, 100);
+  const activeCat = categoryFilter
+    ? cats?.items.find((c) => c.id === categoryFilter)
+    : undefined;
   const create = useCreateAsset();
   const update = useUpdateAsset();
   const del = useDeleteAsset();
@@ -143,6 +149,21 @@ export function AssetsPage() {
 
   return (
     <div className="space-y-4">
+      {activeCat && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Filtrado por categoria:</span>
+          <span className="flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1 text-sm font-medium">
+            {activeCat.name}
+            <button
+              onClick={() => setSearchParams({})}
+              className="text-indigo-400 hover:text-indigo-700 transition-colors"
+              title="Remover filtro"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </span>
+        </div>
+      )}
       {/* Toolbar */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">

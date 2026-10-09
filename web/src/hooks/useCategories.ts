@@ -33,6 +33,19 @@ export function useCreateCategory() {
   });
 }
 
+export function useUpdateCategory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: string; name?: string; description?: string }) =>
+      api.patch<Category>(`/api/v1/categories/${id}`, payload).then((r) => r.data),
+    onSuccess: (cat) => {
+      qc.invalidateQueries({ queryKey: ["categories"] });
+      toast.success(`Categoria "${cat.name}" atualizada`);
+    },
+    onError: () => toast.error("Erro ao atualizar. Nome pode já existir."),
+  });
+}
+
 export function useDeleteCategory() {
   const qc = useQueryClient();
   return useMutation({
