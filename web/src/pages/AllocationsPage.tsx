@@ -14,6 +14,7 @@ import { getCurrentRole } from "../lib/auth";
 import { AllocationBadge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
+import { SkeletonRows } from "../components/ui/SkeletonRow";
 
 const createSchema = z.object({
   asset_id: z.string().min(1, "Selecione um ativo"),
@@ -93,24 +94,23 @@ export function AllocationsPage() {
       </div>
 
       {/* Table */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr className="text-left text-gray-400 text-xs uppercase tracking-wide">
-                <th className="px-4 py-3 font-medium">Ativo</th>
-                <th className="px-4 py-3 font-medium">Responsável</th>
-                <th className="px-4 py-3 font-medium">Alocado em</th>
-                <th className="px-4 py-3 font-medium">Devolvido em</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                {isAdmin && <th className="px-4 py-3 font-medium w-10" />}
-              </tr>
-            </thead>
-            <tbody>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr className="text-left text-gray-400 text-xs uppercase tracking-wide">
+              <th className="px-4 py-3 font-medium">Ativo</th>
+              <th className="px-4 py-3 font-medium">Responsável</th>
+              <th className="px-4 py-3 font-medium">Alocado em</th>
+              <th className="px-4 py-3 font-medium">Devolvido em</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              {isAdmin && <th className="px-4 py-3 font-medium w-10" />}
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <SkeletonRows cols={isAdmin ? 6 : 5} rows={5} />
+            ) : (
+              <>
               {data?.items.map((a) => (
                 <tr key={a.id} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
@@ -155,10 +155,11 @@ export function AllocationsPage() {
                   </td>
                 </tr>
               )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <Pagination page={page} totalPages={data?.total_pages ?? 1} onPage={setPage} />
 

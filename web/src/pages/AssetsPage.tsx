@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { Plus, Search, Download, Monitor, Pencil } from "lucide-react";
+import { Plus, Search, Download, Monitor, Pencil, History } from "lucide-react";
 import {
   useAssets,
   useCreateAsset,
@@ -11,10 +11,12 @@ import {
   useUpdateAsset,
 } from "../hooks/useAssets";
 import { useCategories } from "../hooks/useCategories";
+import { useNavigate } from "react-router-dom";
 import { getCurrentRole } from "../lib/auth";
 import { StatusBadge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
+import { SkeletonRows } from "../components/ui/SkeletonRow";
 import type { Asset, AssetStatus } from "../types";
 
 const STATUS_OPTIONS: { value: AssetStatus | ""; label: string }[] = [
@@ -86,6 +88,7 @@ export function AssetsPage() {
   const [status, setStatus] = useState<AssetStatus | "">("");
   const [showCreate, setShowCreate] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const navigate = useNavigate();
   const role = getCurrentRole();
   const isAdmin = role === "admin";
 
@@ -180,26 +183,25 @@ export function AssetsPage() {
       </div>
 
       {/* Table */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr className="text-left text-gray-400 text-xs uppercase tracking-wide">
-                <th className="px-4 py-3 font-medium">Serial</th>
-                <th className="px-4 py-3 font-medium">Nome</th>
-                <th className="px-4 py-3 font-medium">Marca / Modelo</th>
-                <th className="px-4 py-3 font-medium">Categoria</th>
-                <th className="px-4 py-3 font-medium hidden lg:table-cell">Data de compra</th>
-                <th className="px-4 py-3 font-medium">Valor</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                {isAdmin && <th className="px-4 py-3 font-medium w-10" />}
-              </tr>
-            </thead>
-            <tbody>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr className="text-left text-gray-400 text-xs uppercase tracking-wide">
+              <th className="px-4 py-3 font-medium">Serial</th>
+              <th className="px-4 py-3 font-medium">Nome</th>
+              <th className="px-4 py-3 font-medium">Marca / Modelo</th>
+              <th className="px-4 py-3 font-medium">Categoria</th>
+              <th className="px-4 py-3 font-medium hidden lg:table-cell">Data de compra</th>
+              <th className="px-4 py-3 font-medium">Valor</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium w-10" />
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <SkeletonRows cols={isAdmin ? 8 : 8} rows={6} />
+            ) : (
+              <>
               {data?.items.map((a) => (
                 <tr
                   key={a.id}
@@ -224,22 +226,31 @@ export function AssetsPage() {
                   <td className="px-4 py-3">
                     <StatusBadge status={a.status} />
                   </td>
-                  {isAdmin && (
-                    <td className="px-4 py-3">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
                       <button
-                        onClick={() => openEdit(a)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                        title="Editar"
+                        onClick={() => navigate(`/assets/${a.id}/history`)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        title="Ver histórico"
                       >
-                        <Pencil className="w-3.5 h-3.5" />
+                        <History className="w-3.5 h-3.5" />
                       </button>
-                    </td>
-                  )}
+                      {isAdmin && (
+                        <button
+                          onClick={() => openEdit(a)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          title="Editar"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
               {!data?.items.length && (
                 <tr>
-                  <td colSpan={isAdmin ? 8 : 7}>
+                  <td colSpan={8}>
                     <div className="flex flex-col items-center justify-center py-14 text-center">
                       <Monitor className="w-10 h-10 text-gray-200 mb-3" />
                       <p className="text-sm text-gray-400">Nenhum ativo encontrado.</p>
@@ -252,10 +263,11 @@ export function AssetsPage() {
                   </td>
                 </tr>
               )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <Pagination page={page} totalPages={data?.total_pages ?? 1} onPage={setPage} />
 

@@ -31,6 +31,17 @@ export function useAssets(filters: AssetFilters = {}) {
   });
 }
 
+export function useAsset(id: string) {
+  return useQuery({
+    queryKey: ["asset", id],
+    queryFn: async () => {
+      const { data } = await api.get<Asset>(`/api/v1/assets/${id}`);
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
 export function useCreateAsset() {
   const qc = useQueryClient();
   return useMutation({

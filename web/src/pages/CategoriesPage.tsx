@@ -2,7 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Plus, Tag, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Tag, Trash2, AlertTriangle, Search } from "lucide-react";
 import {
   useCategories,
   useCreateCategory,
@@ -11,6 +11,16 @@ import {
 import { getCurrentRole } from "../lib/auth";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
+
+function CategorySkeleton() {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="w-10 h-10 rounded-xl bg-gray-100 animate-pulse mb-3" />
+      <div className="h-4 bg-gray-100 rounded animate-pulse w-2/3 mb-2" />
+      <div className="h-3 bg-gray-100 rounded animate-pulse w-full" />
+    </div>
+  );
+}
 
 const schema = z.object({
   name: z.string().min(2, "Mínimo 2 caracteres"),
@@ -28,12 +38,21 @@ const catColors = [
 
 export function CategoriesPage() {
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState<{ id: string; name: string } | null>(null);
   const role = getCurrentRole();
   const isAdmin = role === "admin";
 
   const { data, isLoading } = useCategories(page);
+
+  const filtered = search.trim()
+    ? (data?.items ?? []).filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          (c.description ?? "").toLowerCase().includes(search.toLowerCase())
+      )
+    : (data?.items ?? []);
   const create = useCreateCategory();
   const del = useDeleteCategory();
 
@@ -51,7 +70,16 @@ export function CategoriesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar categoria…"
+            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
         {isAdmin && (
           <button
             onClick={() => setShowModal(true)}
@@ -64,12 +92,12 @@ export function CategoriesPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => <CategorySkeleton key={i} />)}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data?.items.map((c, i) => (
+          {filtered.map((c, i) => (
             <div
               key={c.id}
               className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow group"
@@ -97,7 +125,7 @@ export function CategoriesPage() {
             </div>
           ))}
 
-          {!data?.items.length && (
+          {!filtered.length && (
             <div className="col-span-3 flex flex-col items-center justify-center py-16 text-center">
               <Tag className="w-10 h-10 text-gray-200 mb-3" />
               <p className="text-sm text-gray-400">Nenhuma categoria cadastrada.</p>

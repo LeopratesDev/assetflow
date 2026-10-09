@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { AppLayout } from "./components/layout/AppLayout";
 import { queryClient } from "./lib/queryClient";
 import { AllocationsPage } from "./pages/AllocationsPage";
+import { AssetHistoryPage } from "./pages/AssetHistoryPage";
 import { AssetsPage } from "./pages/AssetsPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -31,6 +32,7 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/assets" element={<AssetsPage />} />
+            <Route path="/assets/:id/history" element={<AssetHistoryPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/allocations" element={<AllocationsPage />} />
           </Route>
