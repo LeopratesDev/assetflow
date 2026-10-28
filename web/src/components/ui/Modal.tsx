@@ -22,13 +22,16 @@ export function Modal({ title, subtitle, onClose, children, size = "md" }: Props
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className={`bg-white rounded-2xl shadow-2xl w-full ${widths[size]} mx-4 overflow-hidden`}>
         <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+            <h2 id="modal-title" className="text-base font-semibold text-gray-900">{title}</h2>
             {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
           </div>
           <button
