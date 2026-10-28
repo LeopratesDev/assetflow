@@ -67,6 +67,8 @@ test.describe("página de ativos", () => {
     await page.getByRole("button", { name: /cadastrar/i }).click();
 
     await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 15000 });
+    // busca pelo serial para trazer à primeira página
+    await page.getByPlaceholder(/buscar/i).fill(serial);
     await expect(page.getByText(serial)).toBeVisible({ timeout: 15000 });
   });
 
